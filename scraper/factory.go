@@ -3,24 +3,15 @@ package scraper
 import (
 	"context"
 	"github.com/chromedp/chromedp"
-	"github.com/m4schini/logger"
-	"golang.org/x/time/rate"
+	"web-scraper-module/config"
 )
 
-var limiter = rate.NewLimiter(rate.Limit(1), 1)
-
-type AllocatorContextFactory struct {
-	execAllocatorCtx   context.Context
-	cancelAllocatorCtx context.CancelFunc
-}
-
-func NewAllocatorContextFactory(ctx context.Context, proxyAddr string) *AllocatorContextFactory {
-	af := new(AllocatorContextFactory)
+func NewChromeContext(ctx context.Context, proxyAddr string) (context.Context, context.CancelFunc) {
 	opts := []chromedp.ExecAllocatorOption{
 		chromedp.Flag("-incognito", true),
 	}
 
-	if !logger.DevelopmentMode {
+	if !config.DevModeEnabled() {
 		for _, option := range chromedp.DefaultExecAllocatorOptions {
 			opts = append(opts, option)
 		}
@@ -30,16 +21,10 @@ func NewAllocatorContextFactory(ctx context.Context, proxyAddr string) *Allocato
 		opts = append(opts, chromedp.ProxyServer(proxyAddr))
 	}
 
-	af.execAllocatorCtx, af.cancelAllocatorCtx = chromedp.NewExecAllocator(ctx, opts...)
-	return af
-}
-
-func (a *AllocatorContextFactory) NewContext() (context.Context, context.CancelFunc) {
-	limiter.Wait(context.Background())
-	return chromedp.NewContext(a.execAllocatorCtx)
-}
-
-func (a *AllocatorContextFactory) Close() error {
-	a.cancelAllocatorCtx()
-	return nil
+	execAllocatorCtx, cancelAllocatorCtx := chromedp.NewExecAllocator(ctx, opts...)
+	ctx, cancel := chromedp.NewContext(execAllocatorCtx)
+	return ctx, func() {
+		cancel()
+		cancelAllocatorCtx()
+	}
 }

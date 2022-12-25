@@ -51,7 +51,7 @@ func main() {
 
 	go func() {
 		if config.MetricsPort() == 0 {
-			log.Warn("$METRICS_PORT is undefined. Not serving Prometheus")
+			log.Warn("$METRICS_PORT is undefined. Prometheus is disabled")
 			return
 		}
 		if err := metrics.ServeMetrics(); err != nil {

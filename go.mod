@@ -7,14 +7,11 @@ require (
 	github.com/chromedp/cdproto v0.0.0-20220924210414-0e3390be1777
 	github.com/chromedp/chromedp v0.8.6
 	github.com/m4schini/logger v1.3.2
-	github.com/m4schini/util v0.0.0-00010101000000-000000000000
 	github.com/prometheus/client_golang v1.13.1
 	golang.org/x/time v0.0.0-20191024005414-555d28b269f0
 	google.golang.org/grpc v1.51.0
 	google.golang.org/protobuf v1.28.1
 )
-
-replace github.com/m4schini/util => ../util-pkg
 
 require (
 	github.com/beorn7/perks v1.0.1 // indirect
@@ -24,7 +21,6 @@ require (
 	github.com/gobwas/pool v0.2.1 // indirect
 	github.com/gobwas/ws v1.1.0 // indirect
 	github.com/golang/protobuf v1.5.2 // indirect
-	github.com/google/uuid v1.3.0 // indirect
 	github.com/josharian/intern v1.0.0 // indirect
 	github.com/mailru/easyjson v0.7.7 // indirect
 	github.com/matttproud/golang_protobuf_extensions v1.0.1 // indirect

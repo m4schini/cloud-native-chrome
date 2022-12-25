@@ -7,57 +7,15 @@ import (
 	"github.com/chromedp/cdproto/runtime"
 	"github.com/chromedp/chromedp"
 	"github.com/m4schini/logger"
-	"github.com/m4schini/util"
 	"os"
 	"time"
 	pb "web-scraper-module/proto"
 )
 
 var log = logger.Named("scraper").Sugar()
-var ctxFactory = NewAllocatorContextFactory(context.Background(), os.Getenv("CDP_PROXY_ADDR"))
-
-func Get(ctx context.Context, url string, pageLoadDuration time.Duration, screenshot bool) (string, []byte, error) {
-	requestId := util.GetRequestId(ctx)
-	log := log.With("requestId", requestId)
-
-	cdp, cancel := ctxFactory.NewContext()
-	defer func() {
-		cancel()
-		log.Debug("chromedp context closed")
-	}()
-	log.Debugw("created chromedp context", "proxy", os.Getenv("CDP_PROXY_ADDR"))
-
-	actions := []chromedp.Action{
-		chromedp.EmulateViewport(1920, 1080),
-		chromedp.Navigate(url),
-		chromedp.Sleep(pageLoadDuration),
-	}
-
-	var htmlBuf = new(string)
-	actions = append(actions, CaptureHtml(htmlBuf))
-	log.Debug("added action: capture html")
-
-	var imgBuf = make([]byte, 0, 4096)
-	if screenshot {
-		actions = append(actions, chromedp.CaptureScreenshot(&imgBuf))
-		log.Debug("added action: capture screenshot")
-	}
-
-	log.Debug("executing chromedp actions")
-	err := chromedp.Run(cdp, actions...)
-	log.Debug("completed chromedp actions")
-	if err != nil {
-		return "", imgBuf, err
-	}
-
-	return *htmlBuf, imgBuf, nil
-}
 
 func Control(ctx context.Context, instructions <-chan *pb.ControlRequest) (<-chan *pb.ControlResponse, context.CancelFunc) {
-	requestId := util.GetRequestId(ctx)
-	log := log.With("requestId", requestId)
-
-	cdp, cancel := ctxFactory.NewContext()
+	cdp, cancel := NewChromeContext(ctx, os.Getenv("CDP_PROXY_ADDR"))
 	log.Debugw("created chromedp context", "proxy", os.Getenv("CDP_PROXY_ADDR"))
 
 	responseCh := make(chan *pb.ControlResponse)
